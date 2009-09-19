@@ -1,9 +1,10 @@
 [Translation]
 File=qtpedometer-nct
 Context=qtpedometer
-
+ 
 [Desktop Entry]
 Comment[]=GPS based pedometer
 Exec=qtpedometer
 Type=Application
 Name[]=QtPedometer
+ 
