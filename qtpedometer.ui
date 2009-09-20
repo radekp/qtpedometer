@@ -165,7 +165,7 @@
        <item row="2" column="0" >
         <widget class="QLabel" name="label_10" >
          <property name="text" >
-          <string>Track</string>
+          <string>Bearing</string>
          </property>
          <property name="alignment" >
           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -173,7 +173,7 @@
         </widget>
        </item>
        <item row="2" column="1" >
-        <widget class="QLineEdit" name="track" >
+        <widget class="QLineEdit" name="bearing" >
          <property name="readOnly" >
           <bool>true</bool>
          </property>
@@ -334,11 +334,11 @@
      </widget>
      <widget class="QWidget" name="tab_2" >
       <attribute name="title" >
-       <string>Track</string>
+       <string>Com</string>
       </attribute>
       <layout class="QGridLayout" >
        <item row="0" column="0" >
-        <widget class="QFrame" name="trackView" >
+        <widget class="QFrame" name="compassFrame" >
          <property name="sizePolicy" >
           <sizepolicy vsizetype="Expanding" hsizetype="Expanding" >
            <horstretch>0</horstretch>
@@ -427,8 +427,8 @@
          </property>
          <property name="sizeHint" >
           <size>
-           <width>319</width>
-           <height>81</height>
+           <width>20</width>
+           <height>40</height>
           </size>
          </property>
         </spacer>
@@ -439,6 +439,9 @@
           <widget class="QCheckBox" name="twoDCheck" >
            <property name="text" >
             <string>2D</string>
+           </property>
+           <property name="checked" >
+            <bool>true</bool>
            </property>
           </widget>
          </item>

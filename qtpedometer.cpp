@@ -34,6 +34,7 @@ QtPedometer::QtPedometer(QWidget *parent, Qt::WFlags f) :  QWidget(parent, f)
 	setWindowTitle(tr("Pedometer", "application header"));
 #endif
 	ui.setupUi(this);
+	compass= new Compass();
 
 	// get settings
 	QSettings settings("e4Networks", "Pedometer");
@@ -57,6 +58,7 @@ QtPedometer::~QtPedometer()
 #ifdef Q_WS_QWS
 	QtopiaApplication::setPowerConstraint(QtopiaApplication::Enable);
 #endif
+	delete compass;
 }
 
 void QtPedometer::createMenus()
@@ -95,6 +97,11 @@ void QtPedometer::setMetricUi()
 void QtPedometer::init()
 {
 	qDebug("In QtPedometer:init()");
+
+	// setup compass widget for drawing into
+	QVBoxLayout *vbox = new QVBoxLayout;
+	vbox->addWidget(compass);
+	ui.compassFrame->setLayout(vbox);
 
 	// sync up UI
 	ui.startButton->setDisabled(true);
@@ -203,8 +210,12 @@ void QtPedometer::updated(const QWhereaboutsUpdate &update)
 			ui.altitude->setText(QString::number(update.coordinate().altitude() * METERS_TO_FEET, 'f', 3) + " ft"); // convert to feet
 	}
 
-	if(update.dataValidityFlags() & QWhereaboutsUpdate::Course)
-		ui.track->setText(QString::number(update.course(), 'f', 2) + QChar(0x00B0));   // degrees symbol
+	// set bearing
+	if(update.dataValidityFlags() & QWhereaboutsUpdate::Course){
+		ui.bearing->setText(QString::number(update.course(), 'f', 2) + QChar(0x00B0));   // degrees symbol
+		compass->setBearing(update.course());
+	}
+
 	if(update.dataValidityFlags() & QWhereaboutsUpdate::GroundSpeed){
 		if(use_metric)
 			ui.speed->setText(QString::number(update.groundSpeed(), 'f', 3) + " m/s");
@@ -431,6 +442,8 @@ void QtPedometer::saveTrip()
 	out << "=====================" << endl;
 
 	//QApplication::restoreOverrideCursor();
+	
+	QMessageBox::information(this, tr("Trip"), tr("Saved."));
 
 	return;
 }
@@ -438,22 +451,38 @@ void QtPedometer::saveTrip()
 // set the waypoint
 void QtPedometer::setWayPoint()
 {
+	if(!way_point.isNull()){
+		int ret= QMessageBox::question(this, tr("Way Point"),
+									   tr("Are you sure you want to reset the waypoint?"),
+									   QMessageBox::Yes | QMessageBox::No);
+		if(ret != QMessageBox::Yes)
+			return;
+	}
+
 	QString pos= current_update.coordinate().toString(QWhereaboutsCoordinate::DegreesMinutesSecondsWithHemisphere);
 	QStringList list= pos.split(",");
 
 	ui.wayPtLatitude->setText(list.at(0));
 	ui.wayPtLongitude->setText(list.at(1));
 	way_point= current_update;
+	compass->showAzimuth(true);
 }
 void QtPedometer::clearWayPoint()
 {
-	ui.wayPtLatitude->clear();
-	ui.wayPtLongitude->clear();
-	way_point.clear();
+	int ret= QMessageBox::question(this, tr("Way Point"),
+								   tr("Are you sure you want to clear the waypoint?"),
+								   QMessageBox::Yes | QMessageBox::No);
+	if(ret == QMessageBox::Yes){
+		ui.wayPtLatitude->clear();
+		ui.wayPtLongitude->clear();
+		way_point.clear();
+		compass->showAzimuth(false);
+	}
 }
 
-// This calcualtes and displays either the 2D distance or 3D distance
+// This calculates and displays either the 2D distance or 3D distance
 // between the current position and the way point
+// It also calculates the direction to the waypoint from the current position
 void QtPedometer::calculateWayPoint(const QWhereaboutsUpdate &update)
 {
 	qreal distance= 0.0;
@@ -478,6 +507,13 @@ void QtPedometer::calculateWayPoint(const QWhereaboutsUpdate &update)
 		qreal feet= distance * (use_metric ? 1.0 : METERS_TO_FEET);
 		ui.wayPointDistance->setText(QString::number(feet, 'f', 1) + (use_metric ? " m" : " ft"));
 	}
+
+	// where is the way point? This is the number of degrees relative
+	// to North so we draw it relative to the North point of the
+	// compass
+	qreal az= update.coordinate().azimuthTo(way_point.coordinate());
+	//qDebug("azimuth of waypoint= %6.2f", az);
+	compass->setAzimuth(az);
 }
 
 #define PI 3.14159265
