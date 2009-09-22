@@ -19,7 +19,8 @@ pkg [
 
 # Input files
 FORMS=\
-    qtpedometer.ui
+    qtpedometer.ui\
+    settings.ui
 
 HEADERS=\
     qtpedometer.h\
@@ -42,3 +43,9 @@ desktop [
     path=/apps/Applications
 ]
 
+# Install some pictures.
+pics [
+    hint=pics
+    files=pics/*
+    path=/pics/qtpedometer
+]
