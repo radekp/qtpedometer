@@ -40,3 +40,8 @@ desktop [
     path=/apps/Applications
 ]
 
+pics [
+    hint=pics
+    files=pics/*
+    path=/pics/qtpedometer
+]
